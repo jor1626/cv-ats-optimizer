@@ -1,0 +1,25 @@
+# --- Datos personales (nunca subir) ---
+# CV base que subes en la app
+datos/
+# CV generados, correos y vacantes de cada postulación
+salidas/
+# Carpeta temporal donde corre Claude Code (se regenera)
+.claude_workdir/
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# --- Secretos ---
+.env
+.env.*
+
+# --- Sistema / editor ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CV ATS Optimizer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">CV ATS Optimizer</div>
+    <div class="sub">Adapta tu CV a cada vacante sin inventar nada</div>
+  </header>
+
+  <main>
+    <aside class="col-form">
+      <section class="card">
+        <h2>1 · Tu CV</h2>
+        <div id="cv-estado" class="muted">Cargando…</div>
+        <label class="file">
+          <input type="file" id="cv-file" accept=".pdf,.docx,.md,.txt" />
+          <span>Subir / reemplazar CV base (PDF, DOCX, MD, TXT)</span>
+        </label>
+        <details id="cv-preview-box" hidden><summary>Ver texto extraído</summary><pre id="cv-preview"></pre></details>
+      </section>
+
+      <section class="card">
+        <h2>2 · La vacante</h2>
+        <label>Link de la vacante (opcional)</label>
+        <input id="url" type="url" placeholder="https://www.linkedin.com/jobs/view/…" />
+        <label>Texto de la vacante / requisitos</label>
+        <textarea id="vacante" rows="9" placeholder="Pega aquí la descripción, requisitos y funciones. Si el link no carga, esto es lo más confiable."></textarea>
+        <label>Indicaciones para Claude (opcional)</label>
+        <textarea id="notas" rows="2" placeholder="Ej: destaca mi experiencia con React; máximo 2 páginas; en inglés…"></textarea>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="chk-cv" checked /> Generar CV optimizado (PDF + Word)</label>
+          <label class="check"><input type="checkbox" id="chk-correo" checked /> Redactar correo de postulación</label>
+        </div>
+        <button id="btn" class="primary">Generar</button>
+        <div id="progreso" class="muted" hidden></div>
+      </section>
+
+      <section class="card">
+        <h2>Historial</h2>
+        <div id="historial" class="muted">—</div>
+      </section>
+    </aside>
+
+    <section class="col-result" id="resultado">
+      <div class="empty">
+        <p>Sube tu CV, pega la vacante y pulsa <b>Generar</b>.</p>
+        <p class="muted">El CV tarda entre 1 y 3 minutos; solo el correo, menos de 1 minuto. Claude adapta tu CV con las palabras exactas de la vacante,
+          sin agregar experiencia que no tienes, y la app verifica de forma independiente qué palabras clave cubre.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

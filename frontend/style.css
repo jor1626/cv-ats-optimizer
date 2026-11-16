@@ -1,0 +1,83 @@
+:root {
+  --bg: #f5f6f8; --panel: #fff; --text: #1d2330; --muted: #6b7385; --border: #e2e5eb;
+  --accent: #2f5bd3; --ok: #1a7f37; --ok-bg: #e6f4ea; --warn: #9a6700; --warn-bg: #fff4d6;
+  --err: #c62828; --err-bg: #fdecea; --info-bg: #e8effd;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1115; --panel: #171a21; --text: #e8eaed; --muted: #8b93a1; --border: #2a2f3a;
+    --accent: #6ea8fe; --ok: #3fb950; --ok-bg: #12261a; --warn: #d29922; --warn-bg: #2a2210;
+    --err: #f85149; --err-bg: #2d1414; --info-bg: #15203a; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14.5px/1.5 "Segoe UI", system-ui, sans-serif; }
+header { padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; gap: 14px; align-items: baseline; flex-wrap: wrap; }
+.brand { font-weight: 700; font-size: 17px; }
+.sub, .muted { color: var(--muted); }
+main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 18px; padding: 18px; max-width: 1400px; margin: 0 auto; }
+@media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+h2 { font-size: 14px; margin: 0 0 10px; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 8px; }
+label { display: block; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; }
+input[type=url], textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; resize: vertical; }
+.file { margin-top: 10px; display: block; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; color: var(--accent); }
+.file input { display: none; }
+button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; cursor: pointer; font: inherit; }
+button.primary { width: 100%; margin-top: 14px; background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; padding: 10px; }
+button:disabled { opacity: .6; cursor: wait; }
+pre { white-space: pre-wrap; font-size: 12px; max-height: 260px; overflow: auto; }
+
+.empty { background: var(--panel); border: 1px dashed var(--border); border-radius: 12px; padding: 40px; text-align: center; }
+.scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.score { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.score .label { font-size: 12px; color: var(--muted); }
+.score .val { font-size: 26px; font-weight: 700; }
+.score .val small { font-size: 15px; color: var(--muted); font-weight: 400; }
+.titulo-vacante { font-size: 18px; font-weight: 700; margin: 0 0 12px; }
+.downloads { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+.downloads a, .downloads button { text-decoration: none; background: var(--panel); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-weight: 600; }
+
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-top: 8px; }
+.tabs button { border: none; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); padding: 8px 12px; }
+.tabs button.on { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; padding: 16px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border); }
+.chip.presente { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.chip.agregada { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.chip.faltante, .chip.perdida { background: var(--err-bg); color: var(--err); border-color: transparent; }
+.chip b { font-weight: 700; }
+.legend { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.aviso { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 10px 12px; margin: 12px 0; font-size: 13px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+td, th { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.tag { font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+.tag.si { background: var(--ok-bg); color: var(--ok); }
+.tag.parcial { background: var(--warn-bg); color: var(--warn); }
+.tag.no { background: var(--err-bg); color: var(--err); }
+ul.lista { padding-left: 20px; margin: 0; }
+ul.lista li { margin-bottom: 4px; }
+
+.cv-preview { background: #fff; color: #222; padding: 28px 34px; border-radius: 8px; border: 1px solid var(--border); font-family: Calibri, "Segoe UI", sans-serif; }
+.cv-preview h1 { text-align: center; margin: 0; font-size: 22px; }
+.cv-preview .tit { text-align: center; color: #1f3864; }
+.cv-preview .con { text-align: center; font-size: 12.5px; color: #444; margin-bottom: 8px; }
+.cv-preview h2 { color: #1f3864; font-size: 13.5px; text-transform: uppercase; border-bottom: 1px solid #ccd; padding-bottom: 2px; margin: 16px 0 6px; }
+.cv-preview .meta { color: #666; font-size: 12.5px; }
+.cv-preview ul { margin: 4px 0 6px; padding-left: 20px; }
+.checks { margin-top: 12px; }
+.check { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: 13.5px; margin: 6px 0; cursor: pointer; }
+.correo { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin: 14px 0; }
+.correo h3 { margin-top: 0; }
+.correo .campo { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+.correo .campo > div { flex: 1; min-width: 0; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.correo .cuerpo { white-space: pre-wrap; }
+.correo .k { font-size: 11.5px; color: var(--muted); display: block; }
+.correo button { white-space: nowrap; }
+.adjunto { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.adjunto code { color: var(--text); }
+.hist-item { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
+.hist-item small { color: var(--muted); display: block; }
+.carta { white-space: pre-wrap; }
