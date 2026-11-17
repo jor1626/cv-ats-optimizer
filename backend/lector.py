@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import claude_cli
+import llm
 
 
 def _limpiar(texto: str) -> str:
@@ -75,13 +76,16 @@ def leer_url(url: str) -> str:
     except requests.RequestException:
         pass
 
-    if len(texto) < 300:
-        # Respaldo: que Claude abra la página con su herramienta WebFetch.
-        texto = claude_cli.run(
-            f"Abre esta URL y devuelve SOLO el texto completo de la oferta de empleo "
-            f"(cargo, empresa, descripción, requisitos, funciones, beneficios), sin comentarios: {url}",
-            tools=["WebFetch"], model="sonnet",
-        )
+    if len(texto) < 300 and llm.cargar()["proveedor"] == "claude":
+        # Respaldo: que Claude abra la página con su herramienta WebFetch (los modelos locales no navegan).
+        try:
+            texto = claude_cli.run(
+                f"Abre esta URL y devuelve SOLO el texto completo de la oferta de empleo "
+                f"(cargo, empresa, descripción, requisitos, funciones, beneficios), sin comentarios: {url}",
+                tools=["WebFetch"], model="sonnet",
+            )
+        except claude_cli.ClaudeError:
+            texto = ""
     if len(texto) < 200:
         raise ValueError("No pude leer la vacante desde el link. Copia y pega el texto de la oferta.")
     return texto[:20000]

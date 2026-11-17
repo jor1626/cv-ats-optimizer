@@ -19,7 +19,7 @@ main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 18px; pa
 h2 { font-size: 14px; margin: 0 0 10px; }
 h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 8px; }
 label { display: block; font-size: 12.5px; color: var(--muted); margin: 10px 0 4px; }
-input[type=url], textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; resize: vertical; }
+input[type=url], input[type=text], input[type=password], select, textarea { width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font: inherit; resize: vertical; }
 .file { margin-top: 10px; display: block; border: 1px dashed var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; color: var(--accent); }
 .file input { display: none; }
 button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; cursor: pointer; font: inherit; }
@@ -81,3 +81,14 @@ ul.lista li { margin-bottom: 4px; }
 .hist-item { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
 .hist-item small { color: var(--muted); display: block; }
 .carta { white-space: pre-wrap; }
+#motor-box > summary { cursor: pointer; font-size: 14px; }
+.motores { margin-top: 10px; }
+.motores .check { align-items: flex-start; }
+.motores .check input { margin-top: 4px; }
+.fila { display: flex; gap: 8px; }
+.fila input { flex: 1; min-width: 0; }
+.avanzado { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.avanzado summary { cursor: pointer; }
+.avanzado input { margin-top: 6px; }
+#lm-estado { font-size: 12.5px; margin-top: 8px; }
+.ayuda { font-size: 12px; color: var(--muted); margin: 10px 0 0; }

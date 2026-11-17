@@ -9,14 +9,14 @@ from datetime import datetime
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 import ats
-import claude_cli
 import config
 import esquema
 import lector
+import llm
 import render
 
 app = FastAPI()
@@ -70,6 +70,44 @@ async def set_cv_base(cv: UploadFile = File(...)):
     return {"existe": True, **meta, "texto": texto}
 
 
+# ---------------- Motor de IA ----------------
+@app.get("/api/ajustes")
+def get_ajustes():
+    return llm.estado()
+
+
+@app.post("/api/ajustes")
+def set_ajustes(datos: dict = Body(...)):
+    try:
+        llm.guardar(datos)
+    except llm.LLMError as e:
+        raise HTTPException(400, str(e)) from e
+    return llm.estado()
+
+
+@app.post("/api/ajustes/modelos")
+def listar_modelos(datos: dict = Body(...)):
+    """Prueba la conexión con LM Studio u Ollama y devuelve los modelos disponibles."""
+    p = datos.get("proveedor", "lmstudio")
+    api_key = datos.get("api_key") or None  # vacío = usar la guardada
+    try:
+        return {"url": llm.normalizar_url(datos.get("url", ""), p),
+                "modelos": llm.modelos(p, datos.get("url"), api_key)}
+    except llm.LLMError as e:
+        raise HTTPException(400, str(e)) from e
+
+
+def _validar(res, schema: dict) -> None:
+    """Los modelos locales pequeños a veces omiten campos: mejor un error claro que un fallo a medias."""
+    faltan = [k for k in schema.get("required", []) if not isinstance(res, dict) or k not in res]
+    if faltan:
+        raise ValueError(f"El modelo devolvió una respuesta incompleta (falta: {', '.join(faltan)}). "
+                         "Vuelve a intentarlo o usa un modelo más grande.")
+    for k, sub in schema.get("properties", {}).items():
+        if sub.get("type") == "object":
+            _validar(res[k], sub)
+
+
 # ---------------- Procesar vacante ----------------
 @app.post("/api/optimizar")
 def optimizar(
@@ -98,18 +136,21 @@ def optimizar(
         if len(vacante) < 80:
             raise HTTPException(400, "Pega el texto de la vacante o un link válido.")
 
-        # 3. Claude
+        # 3. IA (Claude o LM Studio)
         if generar_cv:
             tarea = "cv+correo" if generar_correo else "cv"
             system = esquema.SYSTEM_PROMPT + (esquema.REGLAS_CORREO if generar_correo else "")
-            res = claude_cli.run(esquema.prompt_usuario(cv_texto, vacante, notas, tarea),
-                                 system_prompt=system, schema=esquema.schema_completo(generar_correo))
+            schema = esquema.schema_completo(generar_correo)
+            res = llm.run(esquema.prompt_usuario(cv_texto, vacante, notas, tarea),
+                          system_prompt=system, schema=schema)
+            _validar(res, schema)
             analisis = res["analisis"]
         else:
-            res = claude_cli.run(esquema.prompt_usuario(cv_texto, vacante, notas, "correo"),
-                                 system_prompt=esquema.SYSTEM_PROMPT_CORREO, schema=esquema.SCHEMA_SOLO_CORREO)
+            res = llm.run(esquema.prompt_usuario(cv_texto, vacante, notas, "correo"),
+                          system_prompt=esquema.SYSTEM_PROMPT_CORREO, schema=esquema.SCHEMA_SOLO_CORREO)
+            _validar(res, esquema.SCHEMA_SOLO_CORREO)
             analisis = {k: res[k] for k in ("cargo_vacante", "empresa", "idioma")}
-    except (ValueError, claude_cli.ClaudeError) as e:
+    except (ValueError, llm.LLMError) as e:
         raise HTTPException(400, str(e)) from e
 
     idioma = analisis.get("idioma", "es")
@@ -124,7 +165,7 @@ def optimizar(
     previo = out / "resultado.json"
     resultado = json.loads(previo.read_text(encoding="utf-8")) if previo.exists() else {}
     resultado.update({"id": rid, "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                      "url": vacante_url.strip(), "carpeta": str(out)})
+                      "url": vacante_url.strip(), "carpeta": str(out), "motor": llm.nombre()})
     if not generar_cv and "analisis" in resultado:
         resultado["analisis"].update(analisis)  # conserva el análisis de una corrida anterior
     else:
@@ -141,13 +182,14 @@ def optimizar(
         if paginas > 2:
             obligatorias = [k["termino"] for k in analisis["palabras_clave"] if k["importancia"] == "obligatoria"]
             try:
-                cv_nuevo = claude_cli.run(
+                recortado = llm.run(
                     esquema.prompt_recorte(json.dumps(cv_nuevo, ensure_ascii=False), paginas, obligatorias),
-                    schema=esquema.SCHEMA_CV, model=config.CLAUDE_FALLBACK_MODEL)
-                render.pdf(cv_nuevo, idioma, pdf_path)
-                paginas = render.contar_paginas(pdf_path)
-            except claude_cli.ClaudeError:
-                pass  # nos quedamos con la versión larga
+                    schema=esquema.SCHEMA_CV, rapido=True)
+                _validar(recortado, esquema.SCHEMA_CV)
+                render.pdf(recortado, idioma, pdf_path)
+                cv_nuevo, paginas = recortado, render.contar_paginas(pdf_path)
+            except (llm.LLMError, ValueError):
+                render.pdf(cv_nuevo, idioma, pdf_path)  # nos quedamos con la versión larga
 
         render.docx(cv_nuevo, idioma, out / f"{base}.docx")
         (out / f"{base}.md").write_text(render.markdown(cv_nuevo, idioma), encoding="utf-8")

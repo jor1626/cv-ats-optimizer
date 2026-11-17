@@ -30,6 +30,79 @@ $("cv-file").onchange = async (e) => {
   e.target.value = "";
 };
 
+// ---------------- Motor de IA ----------------
+let ajustes = {};
+const proveedorSel = () => document.querySelector('input[name="proveedor"]:checked')?.value;
+const esLocal = (p) => p === "lmstudio" || p === "ollama";
+const PLACEHOLDER = { lmstudio: "http://localhost:1234/v1 o 192.168.1.20:1234", ollama: "http://localhost:11434 o 192.168.1.20" };
+
+function mostrarAjustes(a) {
+  ajustes = a;
+  const p = a.proveedor;
+  $("motor-nombre").textContent = a.motor;
+  document.querySelector(`input[name="proveedor"][value="${p}"]`).checked = true;
+  $("motor-claude").innerHTML = a.claude_instalado
+    ? "Usa Claude Code con tu sesión de claude.ai (sin API key)."
+    : `<span style="color:var(--err)">No encuentro Claude Code. Instálalo con <code>npm install -g @anthropic-ai/claude-code</code> e inicia sesión con <code>claude</code>.</span>`;
+  $("motor-claude").hidden = p !== "claude";
+  $("motor-local").hidden = !esLocal(p);
+  if (!esLocal(p)) return;
+
+  $("lm-url").value = a[`${p}_url`];
+  $("lm-url").placeholder = PLACEHOLDER[p];
+  $("lm-key-box").hidden = p !== "lmstudio";
+  $("lm-key").placeholder = a.tiene_api_key ? "•••• guardada (escribe otra para cambiarla)" : "Solo si activaste autenticación en el servidor";
+  $("ayuda-lmstudio").hidden = p !== "lmstudio";
+  $("ayuda-ollama").hidden = p !== "ollama";
+  const sel = $("lm-modelo"), modelo = a[`${p}_modelo`];
+  if (sel.dataset.proveedor !== p) {  // al cambiar de proveedor, la lista anterior ya no sirve
+    sel.dataset.proveedor = p;
+    sel.innerHTML = modelo ? `<option value="${esc(modelo)}">${esc(modelo)}</option>` : '<option value="">Primero pulsa Conectar</option>';
+    $("lm-estado").textContent = "";
+  }
+  sel.value = modelo;
+}
+
+async function guardarAjustes(extra = {}) {
+  const p = proveedorSel(), datos = { proveedor: p, ...extra };
+  if (esLocal(p) && $("lm-modelo").dataset.proveedor === p) {
+    datos[`${p}_url`] ??= $("lm-url").value;
+    datos[`${p}_modelo`] ??= $("lm-modelo").value;
+  }
+  if (p === "lmstudio" && $("lm-key").value) datos.lmstudio_api_key = $("lm-key").value;
+  mostrarAjustes(await api("/api/ajustes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) }));
+  $("lm-key").value = "";
+}
+
+async function conectarLocal() {
+  const p = proveedorSel();
+  $("lm-estado").textContent = "Conectando…";
+  $("lm-conectar").disabled = true;
+  try {
+    const d = await api("/api/ajustes/modelos", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proveedor: p, url: $("lm-url").value, api_key: p === "lmstudio" ? $("lm-key").value : "" }) });
+    if (!d.modelos.length) throw new Error(p === "ollama"
+      ? "Conectado, pero Ollama no tiene modelos. Descarga uno con: ollama pull qwen2.5:7b"
+      : "Conectado, pero no hay modelos descargados en LM Studio.");
+    const previo = ajustes[`${p}_modelo`];
+    $("lm-modelo").innerHTML = d.modelos.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join("");
+    $("lm-modelo").value = d.modelos.includes(previo) ? previo : d.modelos[0];
+    await guardarAjustes({ [`${p}_url`]: d.url, [`${p}_modelo`]: $("lm-modelo").value });
+    $("lm-estado").innerHTML = `<span style="color:var(--ok)">✅ Conectado · ${d.modelos.length} modelo(s)</span>`;
+  } catch (err) {
+    $("lm-estado").innerHTML = `<span style="color:var(--err)">${esc(err.message)}</span>`;
+  } finally {
+    $("lm-conectar").disabled = false;
+  }
+}
+
+document.querySelectorAll('input[name="proveedor"]').forEach((r) => (r.onchange = async () => {
+  await guardarAjustes();
+  if (esLocal(proveedorSel())) conectarLocal();
+}));
+$("lm-conectar").onclick = conectarLocal;
+$("lm-modelo").onchange = () => guardarAjustes();
+
 // ---------------- Generar ----------------
 const PASOS_CV = ["Leyendo la vacante…", "Extrayendo palabras clave y requisitos…", "Comparando con tu CV…",
   "Reescribiendo el CV para el ATS…", "Generando carta, correo y preguntas probables…", "Ajustando a 2 páginas…", "Casi listo…"];
@@ -74,14 +147,14 @@ $("btn").onclick = async () => {
 function mostrarResultado(r) {
   const a = r.analisis;
   let html = `<p class="titulo-vacante">${esc(a.cargo_vacante)}${a.empresa ? " · " + esc(a.empresa) : ""}
-    <span class="muted" style="font-weight:400;font-size:13px"> ${esc(a.seniority || "")} · ${esc(r.fecha)}</span></p>`;
+    <span class="muted" style="font-weight:400;font-size:13px"> ${esc(a.seniority || "")} · ${esc(r.fecha)}${r.motor ? " · " + esc(r.motor) : ""}</span></p>`;
 
   if (r.cv) {
     const c = r.cobertura;
     const agregadas = c.palabras.filter((p) => p.estado === "agregada");
     html += `
       <div class="scores">
-        <div class="score"><div class="label">Compatibilidad (estimación de Claude)</div>
+        <div class="score"><div class="label">Compatibilidad (estimación de la IA)</div>
           <div class="val">${a.puntaje_original} <small>→</small> ${a.puntaje_optimizado}</div></div>
         <div class="score"><div class="label">Cobertura de palabras clave (medida por la app)</div>
           <div class="val">${c.original}% <small>→</small> ${c.optimizado}%</div></div>
@@ -217,5 +290,6 @@ async function cargarHistorial() {
 }
 
 actualizarBoton();
+api("/api/ajustes").then((a) => { mostrarAjustes(a); if (a.proveedor === "claude" && !a.claude_instalado) $("motor-box").open = true; });
 api("/api/cv-base").then(mostrarCvBase);
 cargarHistorial();

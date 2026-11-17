@@ -15,6 +15,40 @@
   <main>
     <aside class="col-form">
       <section class="card">
+        <details id="motor-box">
+          <summary><b>⚙️ Motor de IA:</b> <span id="motor-nombre">…</span></summary>
+          <div class="motores">
+            <label class="check"><input type="radio" name="proveedor" value="claude" />
+              <span><b>Claude</b> · tu cuenta de claude.ai (Claude Code)</span></label>
+            <label class="check"><input type="radio" name="proveedor" value="lmstudio" />
+              <span><b>LM Studio</b> · modelo local gratuito, en tu PC o en otra máquina de la red</span></label>
+            <label class="check"><input type="radio" name="proveedor" value="ollama" />
+              <span><b>Ollama</b> · modelo local gratuito, en tu PC o en otra máquina de la red</span></label>
+          </div>
+          <div id="motor-claude" class="muted" hidden></div>
+          <div id="motor-local" hidden>
+            <label>URL del servidor</label>
+            <div class="fila">
+              <input id="lm-url" type="text" />
+              <button id="lm-conectar">Conectar</button>
+            </div>
+            <label>Modelo</label>
+            <select id="lm-modelo"><option value="">Primero pulsa Conectar</option></select>
+            <details class="avanzado" id="lm-key-box"><summary>API key (opcional)</summary>
+              <input id="lm-key" type="password" placeholder="Solo si activaste autenticación en el servidor" />
+            </details>
+            <div id="lm-estado" class="muted"></div>
+            <p class="ayuda" id="ayuda-lmstudio">En LM Studio: pestaña <b>Developer</b> → <b>Start Server</b>. Para otra PC de la red activa
+              <b>Serve on Local Network</b>. Sube el <b>Context Length</b> del modelo a 16384 o más: el CV y la vacante son largos.
+              Los modelos locales no abren links; pega el texto de la vacante.</p>
+            <p class="ayuda" id="ayuda-ollama">Instala <b>Ollama</b> desde ollama.com y descarga un modelo de 7B o más, p. ej.
+              <code>ollama pull qwen2.5:7b</code>. Para usarlo desde otra PC de la red, en esa máquina define
+              <code>OLLAMA_HOST=0.0.0.0</code> y reinicia Ollama. Los modelos locales no abren links; pega el texto de la vacante.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="card">
         <h2>1 · Tu CV</h2>
         <div id="cv-estado" class="muted">Cargando…</div>
         <label class="file">
@@ -30,7 +64,7 @@
         <input id="url" type="url" placeholder="https://www.linkedin.com/jobs/view/…" />
         <label>Texto de la vacante / requisitos</label>
         <textarea id="vacante" rows="9" placeholder="Pega aquí la descripción, requisitos y funciones. Si el link no carga, esto es lo más confiable."></textarea>
-        <label>Indicaciones para Claude (opcional)</label>
+        <label>Indicaciones para la IA (opcional)</label>
         <textarea id="notas" rows="2" placeholder="Ej: destaca mi experiencia con React; máximo 2 páginas; en inglés…"></textarea>
         <div class="checks">
           <label class="check"><input type="checkbox" id="chk-cv" checked /> Generar CV optimizado (PDF + Word)</label>
@@ -49,7 +83,7 @@
     <section class="col-result" id="resultado">
       <div class="empty">
         <p>Sube tu CV, pega la vacante y pulsa <b>Generar</b>.</p>
-        <p class="muted">El CV tarda entre 1 y 3 minutos; solo el correo, menos de 1 minuto. Claude adapta tu CV con las palabras exactas de la vacante,
+        <p class="muted">Con Claude, el CV tarda entre 1 y 3 minutos (con un modelo local depende de tu equipo). La IA adapta tu CV con las palabras exactas de la vacante,
           sin agregar experiencia que no tienes, y la app verifica de forma independiente qué palabras clave cubre.</p>
       </div>
     </section>
